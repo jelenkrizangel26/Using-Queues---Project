@@ -102,6 +102,7 @@ class Consumer(Worker):
 
 def main(args):
     buffer = queue_types[args.queue]()
+    products = prioritized_products if args.queue == "heap" else products
     producers = [
         Producer(args.producer_speed, buffer, products)
         for _ in range(args.producers)
