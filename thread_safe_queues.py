@@ -4,6 +4,9 @@ import threading
 from random import randint
 from time import sleep
 from random import choice, randint
+from dataclasses import dataclass, field
+from enum import IntEnum
+
 
 queue_types = {
     "fifo": Queue,
@@ -27,6 +30,25 @@ products = (
     ":teddy_bear:",
     ":thread:",
     ":yo-yo:",
+)
+
+@dataclass(order=True)
+class Product:
+    priority: int
+    label: str = field(compare=False)
+
+    def __str__(self):
+        return self.label
+
+class Priority(IntEnum):
+    HIGH = 1
+    MEDIUM = 2
+    LOW = 3
+
+prioritized_products = (
+    Product(Priority.HIGH, ":1st_place_medal:"),
+    Product(Priority.MEDIUM, ":2nd_place_medal:"),
+    Product(Priority.LOW, ":3rd_place_medal:"),
 )
 
 class Worker(threading.Thread):
@@ -69,9 +91,33 @@ class Producer(Worker):
             self.simulate_work()
             self.buffer.put(self.product)
             self.simulate_idle()
-            
+
+class Consumer(Worker):
+    def run(self):
+        while True:
+            self.product = self.buffer.get()
+            self.simulate_work()
+            self.buffer.task_done()
+            self.simulate_idle()
+
 def main(args):
     buffer = queue_types[args.queue]()
+    producers = [
+        Producer(args.producer_speed, buffer, products)
+        for _ in range(args.producers)
+    ]
+    consumers = [
+        Consumer(args.consumer_speed, buffer) for _ in range(args.consumers)
+    ]
+
+    for producer in producers:
+        producer.start()
+
+    for consumer in consumers:
+        consumer.start()
+
+    view = View(buffer, producers, consumers)
+    view.animate()
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -88,5 +134,3 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         pass
 
-main()
-parse_args()
