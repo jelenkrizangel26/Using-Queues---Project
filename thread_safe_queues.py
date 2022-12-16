@@ -9,3 +9,21 @@ queue_types = {
 
 def main(args):
     buffer = queue_types[args.queue]()
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-q", "--queue", choices=queue_types, default="fifo")
+    parser.add_argument("-p", "--producers", type=int, default=3)
+    parser.add_argument("-c", "--consumers", type=int, default=2)
+    parser.add_argument("-ps", "--producer-speed", type=int, default=1)
+    parser.add_argument("-cs", "--consumer-speed", type=int, default=1)
+    return parser.parse_args()
+
+if __name__ == "__main__":
+    try:
+        main(parse_args())
+    except KeyboardInterrupt:
+        pass
+
+main()
+parse_args()
