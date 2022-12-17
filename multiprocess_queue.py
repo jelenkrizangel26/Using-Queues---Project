@@ -2,6 +2,8 @@ import time
 from hashlib import md5
 from string import ascii_lowercase
 import multiprocessing
+from dataclasses import dataclass
+
 
 
 class Combinations:
@@ -26,6 +28,19 @@ def reverse_md5(hash_value, alphabet=ascii_lowercase, max_length=6):
     for length in range(1, max_length + 1):
         for combination in Combinations(alphabet, length):
             text_bytes = "".join(combination).encode("utf-8")
+            hashed = md5(text_bytes).hexdigest()
+            if hashed == hash_value:
+                return text_bytes.decode("utf-8")
+
+@dataclass(frozen=True)
+class Job:
+    combinations: Combinations
+    start_index: int
+    stop_index: int
+
+    def __call__(self, hash_value):
+        for index in range(self.start_index, self.stop_index):
+            text_bytes = self.combinations[index].encode("utf-8")
             hashed = md5(text_bytes).hexdigest()
             if hashed == hash_value:
                 return text_bytes.decode("utf-8")
