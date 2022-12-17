@@ -67,7 +67,7 @@ class Worker(multiprocessing.Process):
 def main():
     t1 = time.perf_counter()
 
-    tqueue_in = multiprocessing.Queue()
+    queue_in = multiprocessing.Queue()
     queue_out = multiprocessing.Queue()
 
     workers = [
@@ -82,6 +82,8 @@ def main():
         combinations = Combinations(ascii_lowercase, text_length)
         for indices in chunk_indices(len(combinations), len(workers)):
             queue_in.put(Job(combinations, *indices))
+
+    queue_in.put(POISON_PILL)
 
     while any(worker.is_alive() for worker in workers):
         try:
