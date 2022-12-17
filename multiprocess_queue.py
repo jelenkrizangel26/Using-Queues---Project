@@ -1,6 +1,8 @@
 import time
 from hashlib import md5
 from string import ascii_lowercase
+import multiprocessing
+
 
 class Combinations:
     def __init__(self, alphabet, length):
@@ -27,6 +29,20 @@ def reverse_md5(hash_value, alphabet=ascii_lowercase, max_length=6):
             hashed = md5(text_bytes).hexdigest()
             if hashed == hash_value:
                 return text_bytes.decode("utf-8")
+
+class Worker(multiprocessing.Process):
+    def __init__(self, queue_in, queue_out, hash_value):
+        super().__init__(daemon=True)
+        self.queue_in = queue_in
+        self.queue_out = queue_out
+        self.hash_value = hash_value
+
+    def run(self):
+        while True:
+            job = self.queue_in.get()
+            if plaintext := job(self.hash_value):
+                self.queue_out.put(plaintext)
+                break
 
 def main():
     t1 = time.perf_counter()
