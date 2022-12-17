@@ -6,7 +6,7 @@ from string import ascii_lowercase
 from hashlib import md5
 from dataclasses import dataclass
 
-
+POISON_PILL = None
 
 class Combinations:
     def __init__(self, alphabet, length):
@@ -57,6 +57,9 @@ class Worker(multiprocessing.Process):
     def run(self):
         while True:
             job = self.queue_in.get()
+            if job is POISON_PILL:
+                self.queue_in.put(POISON_PILL)
+                break
             if plaintext := job(self.hash_value):
                 self.queue_out.put(plaintext)
                 break
