@@ -80,6 +80,18 @@ def main():
         for indices in chunk_indices(len(combinations), len(workers)):
             queue_in.put(Job(combinations, *indices))
 
+    while any(worker.is_alive() for worker in workers):
+        try:
+            solution = queue_out.get(timeout=0.1)
+            if solution:
+                t2 = time.perf_counter()
+                print(f"{solution} (found in {t2 - t1:.1f}s)")
+                break
+        except queue.Empty:
+            pass
+    else:
+        print("Unable to find a solution")
+
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("hash_value")
